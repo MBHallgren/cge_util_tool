@@ -1,0 +1,9 @@
+name: cgeutil
+channels:
+  - conda-forge
+  - bioconda
+  - genomicepidemiology
+  - defaults
+dependencies:
+  - kma
+  - kgt_mlst
