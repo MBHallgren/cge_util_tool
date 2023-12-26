@@ -3,7 +3,6 @@ import glob
 import subprocess
 import shutil
 
-
 def merge_fastq_files(directory_path, output_file_name):
     # Define the allowed file extensions for FASTQ files
     allowed_extensions = ['.fastq', '.fq', '.fastq.gz', '.fq.gz']
@@ -15,18 +14,21 @@ def merge_fastq_files(directory_path, output_file_name):
     # Get a list of all files in the directory
     all_files = glob.glob(os.path.join(directory_path, '*'))
 
+    print("Scanning for FASTQ files in directory:", directory_path)
+
     # Filter files based on allowed extensions
     for file in all_files:
         if any(file.endswith(extension) for extension in allowed_extensions):
             if file.endswith('.gz'):
                 gzipped_files.append(file)
+                print(f"Found gzipped FASTQ file: {file}")
             else:
                 non_gzipped_files.append(file)
+                print(f"Found non-gzipped FASTQ file: {file}")
 
     # Check if both gzipped and non-gzipped files are found
     if gzipped_files and non_gzipped_files:
-        print("Both gzipped and non-gzipped FASTQ files found.")
-        print("Only the gzipped files will be merged.")
+        print("Both gzipped and non-gzipped FASTQ files found. Only gzipped files will be merged.")
 
     # Define default output directory
     default_output_directory = '/var/lib/cge/data'
@@ -35,24 +37,27 @@ def merge_fastq_files(directory_path, output_file_name):
     fallback_output_directory = os.path.expanduser('~')
 
     # Determine the output directory based on existence
-    if os.path.exists(default_output_directory):
-        output_directory = default_output_directory
-    else:
-        output_directory = fallback_output_directory
+    output_directory = default_output_directory if os.path.exists(default_output_directory) else fallback_output_directory
+
+    print(f"Output directory set to: {output_directory}")
 
     # Merge gzipped files into one if they exist
     if gzipped_files:
+        print("Merging gzipped files...")
         merged_gzipped_file = os.path.join(directory_path, output_file_name + '.gz')
         with open(merged_gzipped_file, 'wb') as output:
             for gzipped_file in gzipped_files:
+                print(f"Adding {gzipped_file} to merged file.")
                 with open(gzipped_file, 'rb') as input_file:
                     shutil.copyfileobj(input_file, output)
+
         # Move the merged file to the specified directory
-        merged_output_path = os.path.join(output_directory, output_file_name + '.gz')
-        shutil.move(merged_gzipped_file, merged_output_path)
+        shutil.move(merged_gzipped_file, output_directory)
+        print(f"Merged gzipped file saved at: {output_directory}/{output_file_name}.gz")
 
     # If only non-gzipped files are found, merge and gzip them
     elif non_gzipped_files:
+        print("Merging and gzipping non-gzipped files...")
         merged_non_gzipped_file = os.path.join(directory_path, output_file_name)
         cat_command = 'cat {} > {}'.format(' '.join(non_gzipped_files), merged_non_gzipped_file)
         subprocess.run(cat_command, shell=True)
@@ -62,10 +67,8 @@ def merge_fastq_files(directory_path, output_file_name):
         subprocess.run(gzip_command, shell=True)
 
         # Move the gzipped merged file to the specified directory
-        merged_output_path = os.path.join(output_directory, output_file_name + '.gz')
-        shutil.move(merged_non_gzipped_file + '.gz', merged_output_path)
-
-    print("Merged FASTQ file saved at:", merged_output_path)
+        shutil.move(merged_non_gzipped_file + '.gz', output_directory)
+        print(f"Merged non-gzipped file saved at: {output_directory}/{output_file_name}.gz")
 
 # Example usage:
 # merge_fastq_files('/path/to/directory', 'merged_output.fastq')
