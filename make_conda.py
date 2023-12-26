@@ -25,9 +25,7 @@ data = {
             "pip"
         ],
         "run": [
-            "python >=3.6",
-            "kma >=1.4.9",
-            "kgt_mlst"
+            "python >=3.6"
         ]
     },
     "about": {
