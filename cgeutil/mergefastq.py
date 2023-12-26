@@ -53,12 +53,17 @@ def merge_fastq_files(directory_path, output_file_name):
 
     # If only non-gzipped files are found, merge and gzip them
     elif non_gzipped_files:
-        merged_non_gzipped_file = os.path.join(directory_path, output_file_name + '.fastq')
-        cat_command = 'cat {} | gzip > {}'.format(' '.join(non_gzipped_files), merged_non_gzipped_file)
+        merged_non_gzipped_file = os.path.join(directory_path, output_file_name)
+        cat_command = 'cat {} > {}'.format(' '.join(non_gzipped_files), merged_non_gzipped_file)
         subprocess.run(cat_command, shell=True)
-        # Move the merged file to the specified directory
-        merged_output_path = os.path.join(output_directory, output_file_name + '.fastq.gz')
-        shutil.move(merged_non_gzipped_file, merged_output_path)
+
+        # Gzip the merged file
+        gzip_command = 'gzip -f {}'.format(merged_non_gzipped_file)
+        subprocess.run(gzip_command, shell=True)
+
+        # Move the gzipped merged file to the specified directory
+        merged_output_path = os.path.join(output_directory, output_file_name + '.gz')
+        shutil.move(merged_non_gzipped_file + '.gz', merged_output_path)
 
     print("Merged FASTQ file saved at:", merged_output_path)
 
