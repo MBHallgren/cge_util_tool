@@ -34,7 +34,7 @@ def main():
 
     if args.action == 'merge':
         # Call the merge function with directory_path and name arguments
-        mergefastq.merge_fastq_files(args.directory_path, args.name)
+        mergefastq.merge_fastq_files(args.dir_path, args.name)
     elif args.action == 'other_action':
         pass
 if __name__ == '__main__':
