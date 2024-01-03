@@ -1,7 +1,7 @@
 import os
-import glob
-import subprocess
 import shutil
+import subprocess
+import glob
 
 def merge_fastq_files(directory_path, output_file_name):
     # Define the allowed file extensions for FASTQ files
@@ -44,31 +44,32 @@ def merge_fastq_files(directory_path, output_file_name):
     # Merge gzipped files into one if they exist
     if gzipped_files:
         print("Merging gzipped files...")
-        merged_gzipped_file = os.path.join(directory_path, output_file_name + '.gz')
-        with open(merged_gzipped_file, 'wb') as output:
+        merged_gzipped_file_path = os.path.join(output_directory, output_file_name + '.fastq.gz')
+        with open(merged_gzipped_file_path, 'wb') as output:
             for gzipped_file in gzipped_files:
                 print(f"Adding {gzipped_file} to merged file.")
                 with open(gzipped_file, 'rb') as input_file:
                     shutil.copyfileobj(input_file, output)
 
-        # Move the merged file to the specified directory
-        shutil.move(merged_gzipped_file, output_directory)
-        print(f"Merged gzipped file saved at: {output_directory}/{output_file_name}.gz")
+        print(f"Merged gzipped file saved at: {merged_gzipped_file_path}")
 
     # If only non-gzipped files are found, merge and gzip them
     elif non_gzipped_files:
         print("Merging and gzipping non-gzipped files...")
-        merged_non_gzipped_file = os.path.join(directory_path, output_file_name)
-        cat_command = 'cat {} > {}'.format(' '.join(non_gzipped_files), merged_non_gzipped_file)
+        merged_non_gzipped_file_path = os.path.join(output_directory, output_file_name + '.fastq')
+
+        # Concatenate the non-gzipped files into one
+        cat_command = 'cat {} > {}'.format(' '.join(non_gzipped_files), merged_non_gzipped_file_path)
         subprocess.run(cat_command, shell=True)
 
         # Gzip the merged file
-        gzip_command = 'gzip -f {}'.format(merged_non_gzipped_file)
+        gzip_command = 'gzip -f {}'.format(merged_non_gzipped_file_path)
         subprocess.run(gzip_command, shell=True)
 
-        # Move the gzipped merged file to the specified directory
-        shutil.move(merged_non_gzipped_file + '.gz', output_directory)
-        print(f"Merged non-gzipped file saved at: {output_directory}/{output_file_name}.gz")
+        # Rename the gzipped file to ensure it ends with '.fastq.gz'
+        os.rename(merged_non_gzipped_file_path + '.gz', merged_non_gzipped_file_path + '.fastq.gz')
 
-# Example usage:
-# merge_fastq_files('/path/to/directory', 'merged_output.fastq')
+        print(f"Merged non-gzipped file saved at: {merged_non_gzipped_file_path}.fastq.gz")
+
+# Example usage
+# merge_fastq_files('/path/to/directory', 'output_file_name')
